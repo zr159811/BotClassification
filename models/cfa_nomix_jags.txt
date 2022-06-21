@@ -1,0 +1,58 @@
+# Basic BAyesian CFA model with sampled factor scores
+# Zachary Roman Ph.D. <ZacharyJoseph.Roman@uzh.ch>
+# Comparison model file for bot classification model in Roman, Brandt, and Miller (2022).
+
+model{
+
+for(i in 1:N){
+
+
+  #############################
+  # scaling constraint ly=1, ty=0
+
+  for(j in 1:25){
+    y[i,j] ~ dnorm(muy[i,j],psiy[j])
+  }
+
+  muy[i,1]   <- xi[i,1]
+  muy[i,11]  <- xi[i,2]
+  muy[i,19]  <- xi[i,3]
+  
+  for(j in 2:10) {muy[i,j] <- ty1[j-1] + ly[j-1]*xi[i,1]}
+  for(j in 12:18){muy[i,j] <- ty1[j-2] + ly[j-2]*xi[i,2]}
+  for(j in 20:25){muy[i,j] <- ty1[j-3] + ly[j-3]*xi[i,3]}
+
+
+  #############################
+  # factors
+  xi[i,1:3] ~ dmnorm(muxi,psixi)
+  ############################
+}
+
+##############################################
+# priors 
+##############################################
+
+for(j in 1:25){
+  psiy[j] ~ dgamma(9,4)
+  ty1[j] ~ dnorm(0,1)
+  ly[j]  ~ dnorm(1,1)I(0,)
+}
+
+for(j in 1:3){muxi[j] = 0}
+
+psixi[1:3,1:3] ~ dwish(R0[1:3,1:3],3)
+
+
+
+#############################
+
+##############################################
+# transformations
+##############################################
+for(j in 1:25){sigmay[j]<- 1/psiy[j]}
+sigmaxi[1:3,1:3] <- inverse(psixi[1:3,1:3])
+
+
+}
+
